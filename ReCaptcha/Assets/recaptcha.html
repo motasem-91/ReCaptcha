@@ -2,35 +2,35 @@
   <head>
     <meta name="viewport" content="width=device-width" />
     <script type="text/javascript">
-      const post = function(value) {
+      const post = function (value) {
         window.webkit.messageHandlers.recaptcha.postMessage(value);
       };
 
-      console.log = function(message) {
+      console.log = function (message) {
         post({ log: message });
       };
 
       const observers = new Array();
-      const observeDOM = function(element, completion) {
+      const observeDOM = function (element, completion) {
         const obs = new MutationObserver(completion);
         obs.observe(element, {
           attributes: true,
           childList: true,
           subtree: true,
-          attributeFilter: ["style"]
+          attributeFilter: ["style"],
         });
 
         observers.push(obs);
       };
 
-      const clearObservers = function() {
-        observers.forEach(function(o) {
+      const clearObservers = function () {
+        observers.forEach(function (o) {
           o.disconnect();
         });
         observers = [];
       };
 
-      const execute = function() {
+      const execute = function () {
         console.log("executing");
 
         // Removes ReCaptcha dismissal when clicking outside div area
@@ -40,7 +40,7 @@
 
         try {
           // Listens to changes on the div element that presents the ReCaptcha challenge
-          observeDOM(document.getElementsByTagName("div")[3], function() {
+          observeDOM(document.getElementsByTagName("div")[3], function () {
             post({ action: "showReCaptcha" });
           });
         } catch (e) {
@@ -50,39 +50,39 @@
         grecaptcha.execute();
       };
 
-      const reset = function() {
+      const reset = function () {
         console.log("resetting");
         grecaptcha.reset();
-        grecaptcha.ready(function() {
+        grecaptcha.ready(function () {
           post({ action: "didLoad" });
         });
       };
 
-      var onloadCallback = function() {
+      var onloadCallback = function () {
         grecaptcha.render("submit", {
           sitekey: "${apiKey}",
-          callback: function(token) {
+          callback: function (token) {
             console.log(token);
             post({ token });
             clearObservers();
           },
-          "expired-callback": function() {
+          "expired-callback": function () {
             post({ error: 28 });
             clearObservers();
           },
-          "error-callback": function() {
+          "error-callback": function () {
             post({ error: 29 });
             clearObservers();
           },
-          size: "invisible"
+          size: "invisible",
         });
 
-        grecaptcha.ready(function() {
-          observeDOM(document.getElementById("body"), function(mut) {
-            const success = !!mut.find(function({ addedNodes }) {
+        grecaptcha.ready(function () {
+          observeDOM(document.getElementById("body"), function (mut) {
+            const success = !!mut.find(function ({ addedNodes }) {
               return Array.from(
                 addedNodes.values ? addedNodes.values() : addedNodes
-              ).find(function({ nodeName, name }) {
+              ).find(function ({ nodeName, name }) {
                 return nodeName === "IFRAME" && !!name;
               });
             });
@@ -94,9 +94,29 @@
         });
       };
     </script>
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      .bg-img {
+        width: 100%;
+        height: 100%;
+      }
+      .g-recaptcha > div {
+        margin-top: 3em;
+        text-align: center;
+        width: auto !important;
+        height: auto !important;
+      }
+    </style>
   </head>
-  <body id="body">
-    <span id="submit" style="visibility: hidden;"></span>
+  <body id="body" align="center" class="g-recaptcha">
+    <img
+      class="bg-img"
+      src="https://beacon-dev.suhail.ai/uploads/IMG_F34236288_A23_1_1_c28b318636.jpg?updated_at=2023-04-26T11:46:49.683Z"
+    />
+    <span id="submit" style="visibility: hidden"></span>
     <script src="${endpoint}" async defer></script>
   </body>
 </html>
